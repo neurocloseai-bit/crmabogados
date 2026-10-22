@@ -73,7 +73,7 @@ export default function Followups() {
       </div>
 
       <div className="overflow-x-auto">
-        <div className="min-w-[760px] overflow-hidden rounded-xl border border-silver-200 bg-white">
+        <div className="min-w-[760px] overflow-hidden rounded-2xl border border-silver-200 bg-white shadow-card">
           <div className="grid grid-cols-7 border-b border-silver-200 bg-silver-100 text-center text-[11px] font-bold uppercase tracking-wider text-navy-800">
             {DOW.map((d) => <div key={d} className="py-2">{d}</div>)}
           </div>
@@ -105,7 +105,7 @@ export default function Followups() {
       <p className="mt-2 text-xs text-silver-500"><span className="mr-3"><Badge tone="gray">Azul oscuro</Badge> seguimiento de lead</span><span className="mr-3"><Badge tone="red">Rojo</Badge> vencido</span><Badge tone="blue">Azul claro</Badge> término o audiencia</p>
 
       {selected && (
-        <section aria-label="Detalle del día" className="mt-4 rounded-xl border border-silver-200 bg-white p-4">
+        <section aria-label="Detalle del día" className="mt-4 rounded-2xl border border-silver-200 bg-white shadow-card p-4">
           <h2 className="mb-2 font-display text-lg capitalize text-navy-800">{fdate(selected, true)}</h2>
           {!sel || (!sel.leads.length && !sel.dls.length) ? <p className="text-sm text-silver-500">Nada agendado este día.</p> : (
             <ul className="space-y-2 text-sm">
@@ -121,5 +121,5 @@ export default function Followups() {
 
 function Summary({ label, n, tone }: { label: string; n: number; tone: 'red' | 'amber' | 'gray' }) {
   const c = { red: 'text-red-700', amber: 'text-amber-700', gray: 'text-navy-800' }[tone]
-  return <div className="rounded-xl border border-silver-200 bg-white px-4 py-3"><div className="text-[11px] font-semibold uppercase tracking-wider text-silver-500">{label}</div><div className={`text-2xl font-bold tabular-nums ${c}`}>{n}</div></div>
+  return <div className="rounded-2xl border border-silver-200 bg-white shadow-card px-4 py-3"><div className="text-[11px] font-semibold uppercase tracking-wider text-silver-500">{label}</div><div className={`text-2xl font-bold tabular-nums ${c}`}>{n}</div></div>
 }

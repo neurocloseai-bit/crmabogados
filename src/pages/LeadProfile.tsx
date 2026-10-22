@@ -70,7 +70,7 @@ export default function LeadProfile() {
 
       <div className="grid gap-5 lg:grid-cols-[320px_1fr]">
         <aside className="space-y-4">
-          <section className="rounded-xl border border-silver-200 bg-white p-4">
+          <section className="rounded-2xl border border-silver-200 bg-white shadow-card p-4">
             <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-silver-500">Datos</h2>
             <dl className="space-y-2 text-sm">
               <div><dt className="text-xs text-silver-500">Teléfono</dt><dd>{l.phone || '—'}</dd></div>
@@ -83,7 +83,7 @@ export default function LeadProfile() {
             </Field>
           </section>
 
-          <section className="rounded-xl border border-silver-200 bg-white p-4">
+          <section className="rounded-2xl border border-silver-200 bg-white shadow-card p-4">
             <h2 className="mb-2 text-xs font-bold uppercase tracking-wider text-silver-500">Próximo seguimiento</h2>
             {l.follow_up_date
               ? <p className="mb-2 flex flex-wrap items-center gap-2 text-sm font-semibold">{fdate(l.follow_up_date, true)} {overdue ? <Badge tone="red">Vencido {Math.abs(daysBetween(t, l.follow_up_date))} d</Badge> : l.follow_up_date === t ? <Badge tone="amber">Hoy</Badge> : null}</p>
@@ -100,7 +100,7 @@ export default function LeadProfile() {
         </aside>
 
         <div className="space-y-4">
-          <form onSubmit={log} className="rounded-xl border border-silver-200 bg-white p-4">
+          <form onSubmit={log} className="rounded-2xl border border-silver-200 bg-white shadow-card p-4">
             <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-silver-500">Registrar seguimiento</h2>
             <div role="radiogroup" aria-label="Tipo de interacción" className="mb-3 flex flex-wrap gap-2">
               {ACTIVITY_KINDS.map((k) => (
@@ -123,7 +123,7 @@ export default function LeadProfile() {
                 {list.map((a) => {
                   const k = ACTIVITY_KINDS.find((x) => x.id === a.kind)
                   return (
-                    <li key={a.id} className="rounded-xl border border-silver-200 bg-white p-3">
+                    <li key={a.id} className="rounded-2xl border border-silver-200 bg-white shadow-card p-3">
                       <div className="flex items-center justify-between gap-2 text-xs text-silver-500">
                         <span className="font-bold text-navy-800">{k?.icon} {k?.label}</span>
                         <span className="flex items-center gap-3">{when(a.occurred_at)}

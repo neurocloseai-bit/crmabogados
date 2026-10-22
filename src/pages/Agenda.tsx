@@ -93,7 +93,7 @@ export default function Agenda() {
             return (
               <div key={d.id}>
                 {head}
-                <article className={`mt-1 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-silver-200 bg-white p-3 ${d.done ? 'opacity-60' : ''}`}>
+                <article className={`mt-1 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-silver-200 bg-white shadow-card p-3 ${d.done ? 'opacity-60' : ''}`}>
                   <div className="min-w-0">
                     <div className={`text-sm font-bold break-words ${d.done ? 'line-through' : ''}`}>{d.title}</div>
                     <div className="text-xs text-silver-500 break-words">{DEADLINE_KINDS.find((k) => k.id === d.kind)?.label}{d.due_time ? ` · ${d.due_time.slice(0, 5)}` : ''}{meta ? ` · ${meta}` : ''}</div>

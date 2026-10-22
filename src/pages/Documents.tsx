@@ -50,7 +50,7 @@ export default function Documents() {
       {!docs.data?.length ? <Empty title="Tu biblioteca está vacía">Sube tus machotes de demandas, escritos y contratos para reutilizarlos después. Acepta Word, PDF, imágenes y más, hasta 25 MB cada uno.</Empty> : !list.length ? <Empty title="Sin resultados">Prueba con otra búsqueda o categoría.</Empty> : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((d) => (
-            <article key={d.id} className="flex min-w-0 flex-col gap-2 rounded-xl border border-silver-200 bg-white p-4">
+            <article key={d.id} className="flex min-w-0 flex-col gap-2 rounded-2xl border border-silver-200 bg-white shadow-card p-4">
               <div className="flex items-start justify-between gap-2"><div className="min-w-0 font-bold break-words">{d.title}</div><Badge tone="blue">{DOC_CATEGORIES.find((c) => c.id === d.category)?.label}</Badge></div>
               <div className="text-xs text-silver-500 break-words">{d.file_name} · {fileSize(d.size_bytes)} · {fdate(d.created_at.slice(0, 10), true)}</div>
               {d.cases?.title && <div className="text-xs font-semibold text-navy-700">Expediente: {d.cases.title}</div>}

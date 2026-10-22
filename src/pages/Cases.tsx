@@ -60,7 +60,7 @@ export default function Cases() {
           {list.map((c) => {
             const paid = paidFor(c.id); const saldo = Math.max(0, c.fees - paid); const pct = c.fees > 0 ? Math.min(100, Math.round((paid / c.fees) * 100)) : 0
             return (
-              <article key={c.id} className="flex min-w-0 flex-col gap-2 rounded-xl border border-silver-200 bg-white p-4">
+              <article key={c.id} className="flex min-w-0 flex-col gap-2 rounded-2xl border border-silver-200 bg-white shadow-card p-4">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0"><div className="font-bold break-words">{c.title}</div><div className="text-sm text-silver-500 break-words">{c.clients?.full_name}</div></div>
                   <Badge tone={c.status === 'activo' ? 'green' : c.status === 'suspendido' ? 'amber' : 'gray'}>{CASE_STATUS.find((s) => s.id === c.status)?.label}</Badge>

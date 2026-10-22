@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../auth/AuthProvider'
+import { AuthShell } from '../components/AuthShell'
 import { Button, ErrorNote, Field, Input } from '../components/ui'
 
 export default function Onboarding() {
@@ -20,18 +21,18 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="grid min-h-screen place-items-center bg-navy-900 px-4">
-      <form onSubmit={submit} className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
-        <h1 className="mb-1 font-display text-xl text-navy-800">Crea tu despacho</h1>
-        <p className="mb-4 text-sm text-silver-500">Es el espacio donde vivirán tus leads, clientes y expedientes. Solo tú y quienes agregues podrán verlo.</p>
+    <AuthShell>
+      <form onSubmit={submit}>
+        <h2 className="font-display text-2xl tracking-wide text-navy-800">Crea tu despacho</h2>
+        <p className="mb-6 mt-1 text-sm text-silver-500">Es el espacio donde vivirán tus leads, clientes y expedientes. Solo tú y quienes agregues podrán verlo.</p>
         <ErrorNote message={error} />
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
           <Field label="Nombre del despacho"><Input required minLength={2} maxLength={120} value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej. Maldonado Abogados" /></Field>
           <Field label="Tu nombre"><Input maxLength={120} value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Ej. Lic. David Maldonado" /></Field>
-          <Button type="submit" disabled={busy}>{busy ? 'Creando…' : 'Crear despacho'}</Button>
+          <Button type="submit" variant="gold" disabled={busy} className="!py-3 text-base">{busy ? 'Creando…' : 'Crear despacho'}</Button>
         </div>
-        <button type="button" onClick={() => void signOut()} className="mt-4 text-xs text-silver-500 underline">Salir</button>
+        <button type="button" onClick={() => void signOut()} className="mt-5 text-sm text-silver-500 hover:underline">Salir</button>
       </form>
-    </div>
+    </AuthShell>
   )
 }

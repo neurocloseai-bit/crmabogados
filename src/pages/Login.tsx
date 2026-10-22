@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { supabase } from '../lib/supabase'
+import { AuthShell } from '../components/AuthShell'
 import { Button, ErrorNote, Field, Input } from '../components/ui'
 
 function friendly(msg: string): string {
@@ -39,26 +40,24 @@ export default function Login() {
   }
 
   return (
-    <div className="grid min-h-screen place-items-center bg-navy-900 px-4">
-      <form onSubmit={submit} className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
-        <div className="mb-5 text-center">
-          <div className="font-display text-2xl tracking-wider text-navy-800">Despacho CRM</div>
-          <div className="text-[10px] font-semibold uppercase tracking-[0.3em] text-gold-500">Leads · Expedientes · Cobranza</div>
-        </div>
+    <AuthShell>
+      <form onSubmit={submit}>
+        <h2 className="font-display text-2xl tracking-wide text-navy-800">{mode === 'in' ? 'Bienvenido, licenciado' : 'Crea tu cuenta'}</h2>
+        <p className="mb-6 mt-1 text-sm text-silver-500">{mode === 'in' ? 'Inicia sesión para ver tus casos y seguimientos.' : 'Empieza a ordenar tu despacho en minutos.'}</p>
         <ErrorNote message={error} />
         {info && <div role="status" className="mb-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{info}</div>}
-        <div className="flex flex-col gap-3">
-          <Field label="Correo"><Input type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
-          <Field label="Contraseña"><Input type="password" required minLength={mode === 'up' ? 8 : undefined} autoComplete={mode === 'in' ? 'current-password' : 'new-password'} value={password} onChange={(e) => setPassword(e.target.value)} /></Field>
-          <Button type="submit" disabled={busy}>{busy ? 'Un momento…' : mode === 'in' ? 'Entrar' : 'Crear cuenta'}</Button>
+        <div className="flex flex-col gap-4">
+          <Field label="Correo"><Input type="email" required autoComplete="email" placeholder="tu@correo.com" value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
+          <Field label="Contraseña"><Input type="password" required minLength={mode === 'up' ? 8 : undefined} autoComplete={mode === 'in' ? 'current-password' : 'new-password'} placeholder={mode === 'up' ? 'Mínimo 8 caracteres' : '••••••••'} value={password} onChange={(e) => setPassword(e.target.value)} /></Field>
+          <Button type="submit" variant="gold" disabled={busy} className="!py-3 text-base">{busy ? 'Un momento…' : mode === 'in' ? 'Entrar' : 'Crear cuenta'}</Button>
         </div>
-        <div className="mt-4 flex items-center justify-between text-xs">
-          <button type="button" className="font-semibold text-navy-700 underline" onClick={() => { setMode(mode === 'in' ? 'up' : 'in'); setError(null); setInfo(null) }}>
+        <div className="mt-5 flex items-center justify-between text-sm">
+          <button type="button" className="font-semibold text-navy-700 hover:underline" onClick={() => { setMode(mode === 'in' ? 'up' : 'in'); setError(null); setInfo(null) }}>
             {mode === 'in' ? 'Crear una cuenta' : 'Ya tengo cuenta'}
           </button>
-          {mode === 'in' && <button type="button" className="text-silver-500 underline" onClick={() => void reset()}>Olvidé mi contraseña</button>}
+          {mode === 'in' && <button type="button" className="text-silver-500 hover:underline" onClick={() => void reset()}>Olvidé mi contraseña</button>}
         </div>
       </form>
-    </div>
+    </AuthShell>
   )
 }

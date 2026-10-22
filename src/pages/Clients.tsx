@@ -51,7 +51,7 @@ export default function Clients() {
           {list.map((c) => {
             const wa = waLink(c.phone); const n = countFor(c.id)
             return (
-              <article key={c.id} className="flex min-w-0 flex-col gap-2 rounded-xl border border-silver-200 bg-white p-4">
+              <article key={c.id} className="flex min-w-0 flex-col gap-2 rounded-2xl border border-silver-200 bg-white shadow-card p-4">
                 <div className="font-bold break-words">{c.full_name}</div>
                 <div className="text-sm text-silver-500 break-words">{[c.phone, c.email].filter(Boolean).join(' · ') || 'Sin datos de contacto'}</div>
                 <div className="text-xs font-semibold text-navy-700">{n} {n === 1 ? 'caso activo' : 'casos activos'}</div>

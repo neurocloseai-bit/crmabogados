@@ -75,7 +75,7 @@ export default function Billing() {
 
       <h2 className="mb-2 text-xs font-bold uppercase tracking-widest text-silver-500">Pendientes</h2>
       {!pending.length ? <Empty title="No hay pagos pendientes">Crea un plan de pagos para un expediente y aquí verás cada pago con su fecha.</Empty> : (
-        <div className="overflow-x-auto rounded-xl border border-silver-200 bg-white">
+        <div className="overflow-x-auto rounded-2xl border border-silver-200 bg-white shadow-card">
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead className="bg-silver-100 text-[11px] uppercase tracking-wider text-silver-500"><tr><th className="px-3 py-2">Fecha</th><th className="px-3 py-2">Caso</th><th className="px-3 py-2">Concepto</th><th className="px-3 py-2 text-right">Monto</th><th className="px-3 py-2" /></tr></thead>
             <tbody className="divide-y divide-silver-200">
@@ -98,7 +98,7 @@ export default function Billing() {
 
       <h2 className="mt-6 mb-2 text-xs font-bold uppercase tracking-widest text-silver-500">Cobrados recientemente</h2>
       {!paidList.length ? <p className="text-sm text-silver-500">Aún no hay pagos registrados.</p> : (
-        <ul className="divide-y divide-silver-200 rounded-xl border border-silver-200 bg-white">
+        <ul className="divide-y divide-silver-200 rounded-2xl border border-silver-200 bg-white shadow-card">
           {paidList.map((p) => (
             <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
               <span><b>{p.cases?.title}</b> · {p.cases?.clients?.full_name}<span className="block text-xs text-silver-500">{fdate(p.paid_on, true)} · {p.method ?? '—'} · <span className="capitalize">{p.kind}</span></span></span>
