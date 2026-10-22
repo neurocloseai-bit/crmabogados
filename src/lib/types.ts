@@ -61,3 +61,12 @@ export const CASE_STATUS: { id: CaseStatus; label: string }[] = [
   { id: 'activo', label: 'Activo' }, { id: 'suspendido', label: 'Suspendido' },
   { id: 'concluido', label: 'Concluido' }, { id: 'archivado', label: 'Archivado' },
 ]
+
+export type ActivityKind = 'llamada' | 'whatsapp' | 'nota' | 'reunion' | 'otro'
+export interface LeadActivity {
+  id: string; firm_id: string; lead_id: string; kind: ActivityKind; note: string | null; occurred_at: string
+}
+export const ACTIVITY_KINDS: { id: ActivityKind; label: string; icon: string }[] = [
+  { id: 'llamada', label: 'Llamada', icon: '📞' }, { id: 'whatsapp', label: 'WhatsApp', icon: '💬' },
+  { id: 'reunion', label: 'Reunión', icon: '🤝' }, { id: 'nota', label: 'Nota', icon: '📝' }, { id: 'otro', label: 'Otro', icon: '•' },
+]

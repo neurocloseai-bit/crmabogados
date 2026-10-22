@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthProvider'
 const NAV = [
   { to: '/', label: 'Inicio', end: true },
   { to: '/leads', label: 'Leads' },
+  { to: '/seguimiento', label: 'Seguimiento' },
   { to: '/clientes', label: 'Clientes' },
   { to: '/expedientes', label: 'Expedientes' },
   { to: '/agenda', label: 'Agenda' },

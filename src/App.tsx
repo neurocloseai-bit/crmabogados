@@ -7,6 +7,8 @@ import Login from './pages/Login'
 import Onboarding from './pages/Onboarding'
 import Dashboard from './pages/Dashboard'
 import Leads from './pages/Leads'
+import Followups from './pages/Followups'
+import LeadProfile from './pages/LeadProfile'
 import Clients from './pages/Clients'
 import Cases from './pages/Cases'
 import Agenda from './pages/Agenda'
@@ -33,6 +35,8 @@ export default function App() {
       <Route element={<Layout />}>
         <Route index element={<Dashboard />} />
         <Route path="leads" element={<Leads />} />
+        <Route path="leads/:id" element={<LeadProfile />} />
+        <Route path="seguimiento" element={<Followups />} />
         <Route path="clientes" element={<Clients />} />
         <Route path="expedientes" element={<Cases />} />
         <Route path="agenda" element={<Agenda />} />

@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useFirmId } from '../auth/AuthProvider'
 import { useQuery } from '../lib/useQuery'
@@ -70,7 +71,7 @@ export default function Leads() {
                     const late = l.follow_up_date && s.id !== 'cliente' && s.id !== 'perdido' && l.follow_up_date <= t
                     return (
                       <article key={l.id} draggable onDragStart={() => setDragId(l.id)} className="cursor-grab rounded-lg border border-silver-200 bg-white p-3 active:cursor-grabbing">
-                        <div className="text-sm font-bold break-words">{l.name}</div>
+                        <Link to={`/leads/${l.id}`} className="text-sm font-bold break-words text-navy-800 hover:underline">{l.name}</Link>
                         <div className="text-xs text-silver-500">{l.case_type}{l.phone ? ` · ${l.phone}` : ''}</div>
                         <div className="mt-2 flex flex-wrap gap-1.5">
                           {l.follow_up_date && (late ? <Badge tone="red">{l.follow_up_date < t ? `Vencido ${Math.abs(daysBetween(t, l.follow_up_date))} d` : 'Hoy'}</Badge> : <Badge>{fdate(l.follow_up_date)}</Badge>)}
@@ -83,6 +84,7 @@ export default function Leads() {
                         </div>
                         <div className="mt-2 flex flex-wrap gap-1.5 text-xs">
                           {wa && <a href={wa} target="_blank" rel="noopener noreferrer" className="rounded-md bg-emerald-100 px-2 py-1 font-semibold text-emerald-800">WhatsApp</a>}
+                          <Link to={`/leads/${l.id}`} className="rounded-md bg-navy-800 px-2 py-1 font-semibold text-white">Seguimiento</Link>
                           <button type="button" onClick={() => open(l)} className="rounded-md border border-silver-200 px-2 py-1 font-semibold">Editar</button>
                           {l.stage !== 'cliente' && l.stage !== 'perdido' && <button type="button" onClick={() => void makeClient(l)} className="rounded-md border border-silver-200 px-2 py-1 font-semibold">Hacer cliente</button>}
                         </div>
