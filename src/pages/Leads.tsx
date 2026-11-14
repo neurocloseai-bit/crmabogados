@@ -5,6 +5,7 @@ import { useFirmId } from '../auth/AuthProvider'
 import { useQuery } from '../lib/useQuery'
 import { CASE_TYPES, SOURCES, STAGES, type Lead, type Stage } from '../lib/types'
 import { daysBetween, fdate, mxn, today, waLink } from '../lib/format'
+import { ensureClientForLead } from '../lib/leadClient'
 import { Badge, Button, Empty, ErrorNote, Field, Input, Modal, PageHeader, Select, Spinner, Textarea } from '../components/ui'
 
 type Draft = { name: string; phone: string; source: string; case_type: string; stage: Stage; quoted: string; follow_up_date: string; notes: string }
@@ -30,11 +31,23 @@ export default function Leads() {
     const row = { name: draft.name.trim(), phone: draft.phone.trim() || null, source: draft.source, case_type: draft.case_type, stage: draft.stage, quoted: Math.max(0, Number(draft.quoted) || 0), follow_up_date: draft.follow_up_date || null, notes: draft.notes.trim() || null }
     const res = editing === 'new' ? await supabase.from('leads').insert({ ...row, firm_id: firmId }) : await supabase.from('leads').update(row).eq('id', (editing as Lead).id)
     if (res.error) { setMsg(res.error.message); return }
+    if (editing !== 'new' && editing && row.stage === 'cliente') {
+      const m = await ensureClientForLead(firmId, { id: editing.id, name: row.name, phone: row.phone })
+      if (m) { setMsg(m); void reload(); return }
+    }
     setEditing(null); void reload()
   }
   async function move(id: string, stage: Stage) {
     const { error } = await supabase.from('leads').update({ stage }).eq('id', id)
-    if (error) setMsg(error.message); else void reload()
+    if (error) { setMsg(error.message); return }
+    if (stage === 'cliente') {
+      const l = data?.find((x) => x.id === id)
+      if (l) {
+        const m = await ensureClientForLead(firmId, l)
+        setMsg(m ?? `${l.name} ya está en Clientes. Abre Expedientes para crear su caso.`)
+      }
+    }
+    void reload()
   }
   async function remove() {
     if (editing === 'new' || !editing) return
@@ -43,10 +56,7 @@ export default function Leads() {
     setEditing(null); void reload()
   }
   async function makeClient(l: Lead) {
-    const { error: e1 } = await supabase.from('clients').insert({ firm_id: firmId, lead_id: l.id, full_name: l.name, phone: l.phone })
-    if (e1) { setMsg(e1.message); return }
     await move(l.id, 'cliente')
-    setMsg(`${l.name} ya está en Clientes. Abre Expedientes para crear su caso.`)
   }
 
   if (loading) return <Spinner />

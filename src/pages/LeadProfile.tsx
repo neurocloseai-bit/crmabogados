@@ -1,3 +1,4 @@
+import { ensureClientForLead } from '../lib/leadClient'
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
@@ -55,7 +56,12 @@ export default function LeadProfile() {
   }
   async function changeStage(stage: Stage) {
     const { error } = await supabase.from('leads').update({ stage }).eq('id', l!.id)
-    if (error) setMsg(error.message); else void lead.reload()
+    if (error) { setMsg(error.message); return }
+    if (stage === 'cliente') {
+      const m = await ensureClientForLead(firmId, l!)
+      setMsg(m ?? `${l!.name} ya está en Clientes. Abre Expedientes para crear su caso.`)
+    }
+    void lead.reload()
   }
   async function removeLead() {
     const { error } = await supabase.from('leads').delete().eq('id', l!.id)

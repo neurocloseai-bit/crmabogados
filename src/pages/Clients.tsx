@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { supabase } from '../lib/supabase'
 import { useFirmId } from '../auth/AuthProvider'
 import { useQuery } from '../lib/useQuery'
@@ -6,6 +6,7 @@ import type { CaseRow, Client } from '../lib/types'
 import { waLink } from '../lib/format'
 import { Button, Empty, ErrorNote, Field, Input, Modal, PageHeader, Spinner, Textarea } from '../components/ui'
 import { ConfirmDelete } from './Leads'
+import { syncClientLeads } from '../lib/leadClient'
 import { InviteClient } from '../components/InviteClient'
 
 type Draft = { full_name: string; phone: string; email: string; address: string; notes: string }
@@ -15,6 +16,8 @@ export default function Clients() {
   const firmId = useFirmId()
   const clients = useQuery<Client[]>(() => supabase.from('clients').select('*').order('full_name'), [])
   const cases = useQuery<Pick<CaseRow, 'id' | 'client_id' | 'status'>[]>(() => supabase.from('cases').select('id, client_id, status'), [])
+  // Leads que ya están en etapa “Cliente” pero sin ficha: se pasan solos a Clientes.
+  useEffect(() => { void syncClientLeads(firmId).then((n) => { if (n) void clients.reload() }) }, [firmId]) // eslint-disable-line react-hooks/exhaustive-deps
   const [editing, setEditing] = useState<Client | 'new' | null>(null)
   const [draft, setDraft] = useState<Draft>(blank)
   const [msg, setMsg] = useState<string | null>(null)
