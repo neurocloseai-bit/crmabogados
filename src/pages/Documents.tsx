@@ -53,7 +53,7 @@ export default function Documents() {
             <article key={d.id} className="flex min-w-0 flex-col gap-2 rounded-2xl border border-silver-200 bg-white shadow-card p-4">
               <div className="flex items-start justify-between gap-2"><div className="min-w-0 font-bold break-words">{d.title}</div><Badge tone="blue">{DOC_CATEGORIES.find((c) => c.id === d.category)?.label}</Badge></div>
               <div className="text-xs text-silver-500 break-words">{d.file_name} · {fileSize(d.size_bytes)} · {fdate(d.created_at.slice(0, 10), true)}</div>
-              {d.cases?.title && <div className="text-xs font-semibold text-navy-700">Expediente: {d.cases.title}</div>}
+              {d.cases?.title && <div className="text-xs font-semibold text-navy-700">Expediente: {d.cases.title}{d.visible_to_client && <> · <Badge tone="green">Visible al cliente</Badge></>}</div>}
               {d.description && <p className="text-sm text-silver-500 break-words">{d.description}</p>}
               <div className="mt-auto flex gap-2 pt-1 text-xs">
                 <button type="button" onClick={() => void download(d)} className="rounded-md bg-navy-800 px-3 py-1.5 font-semibold text-white">Descargar</button>
@@ -69,13 +69,14 @@ export default function Documents() {
   )
 }
 
-function UploadModal({ firmId, cases, onClose, onDone }: { firmId: string; cases: Pick<CaseRow, 'id' | 'title'>[]; onClose: () => void; onDone: () => void }) {
+export function UploadModal({ firmId, cases, onClose, onDone, defaultCaseId = '', defaultCategory = 'machote' }: { firmId: string; cases: Pick<CaseRow, 'id' | 'title'>[]; onClose: () => void; onDone: () => void; defaultCaseId?: string; defaultCategory?: DocCategory }) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [file, setFile] = useState<File | null>(null)
   const [title, setTitle] = useState('')
-  const [category, setCategory] = useState<DocCategory>('machote')
-  const [caseId, setCaseId] = useState('')
+  const [category, setCategory] = useState<DocCategory>(defaultCategory)
+  const [caseId, setCaseId] = useState(defaultCaseId)
   const [desc, setDesc] = useState('')
+  const [visible, setVisible] = useState(false)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
@@ -87,7 +88,7 @@ function UploadModal({ firmId, cases, onClose, onDone }: { firmId: string; cases
     const path = `${firmId}/${crypto.randomUUID()}-${safeName(file.name)}`
     const up = await supabase.storage.from(BUCKET).upload(path, file, { contentType: file.type || undefined })
     if (up.error) { setErr(up.error.message); setBusy(false); return }
-    const { error } = await supabase.from('documents').insert({ firm_id: firmId, case_id: caseId || null, title: title.trim() || file.name, category, description: desc.trim() || null, storage_path: path, file_name: file.name, mime_type: file.type || null, size_bytes: file.size })
+    const { error } = await supabase.from('documents').insert({ firm_id: firmId, case_id: caseId || null, title: title.trim() || file.name, category, description: desc.trim() || null, storage_path: path, file_name: file.name, mime_type: file.type || null, size_bytes: file.size, visible_to_client: Boolean(caseId) && visible })
     if (error) { await supabase.storage.from(BUCKET).remove([path]); setErr(error.message); setBusy(false); return }
     onDone()
   }
@@ -100,7 +101,8 @@ function UploadModal({ firmId, cases, onClose, onDone }: { firmId: string; cases
           <Field label="Título" className="sm:col-span-2"><Input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ej. Demanda de divorcio incausado" /></Field>
           <Field label="Categoría"><Select value={category} onChange={(e) => setCategory(e.target.value as DocCategory)}>{DOC_CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}</Select></Field>
           <Field label="Expediente (opcional)"><Select value={caseId} onChange={(e) => setCaseId(e.target.value)}><option value="">Biblioteca general</option>{cases.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}</Select></Field>
-          <Field label="Nota" className="sm:col-span-2"><Textarea value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Cuándo usarlo, qué campos cambiar…" /></Field>
+          <Field label="Nota (solo para ti, el cliente no la ve)" className="sm:col-span-2"><Textarea value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Cuándo usarlo, qué campos cambiar…" /></Field>
+          {caseId && <label className="flex items-start gap-2 text-sm sm:col-span-2"><input type="checkbox" checked={visible} onChange={(e) => setVisible(e.target.checked)} className="mt-0.5 h-4 w-4" /><span><b>Visible para el cliente</b> en su portal. Revisa el archivo antes de marcarlo.</span></label>}
         </div>
         <div className="mt-4 flex justify-end gap-2"><Button variant="ghost" onClick={onClose}>Cancelar</Button><Button type="submit" disabled={busy}>{busy ? 'Subiendo…' : 'Subir'}</Button></div>
       </form>
@@ -113,10 +115,11 @@ function EditModal({ doc, cases, onClose, onSaved, onDelete }: { doc: DocRow; ca
   const [category, setCategory] = useState<DocCategory>(doc.category)
   const [caseId, setCaseId] = useState(doc.case_id ?? '')
   const [desc, setDesc] = useState(doc.description ?? '')
+  const [visible, setVisible] = useState(doc.visible_to_client)
   const [err, setErr] = useState<string | null>(null)
   async function save(e: FormEvent) {
     e.preventDefault()
-    const { error } = await supabase.from('documents').update({ title: title.trim(), category, case_id: caseId || null, description: desc.trim() || null }).eq('id', doc.id)
+    const { error } = await supabase.from('documents').update({ title: title.trim(), category, case_id: caseId || null, description: desc.trim() || null, visible_to_client: Boolean(caseId) && visible }).eq('id', doc.id)
     if (error) { setErr(error.message); return }
     onSaved()
   }
@@ -129,7 +132,8 @@ function EditModal({ doc, cases, onClose, onSaved, onDelete }: { doc: DocRow; ca
           <Field label="Título" className="sm:col-span-2"><Input required value={title} onChange={(e) => setTitle(e.target.value)} /></Field>
           <Field label="Categoría"><Select value={category} onChange={(e) => setCategory(e.target.value as DocCategory)}>{DOC_CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}</Select></Field>
           <Field label="Expediente"><Select value={caseId} onChange={(e) => setCaseId(e.target.value)}><option value="">Biblioteca general</option>{cases.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}</Select></Field>
-          <Field label="Nota" className="sm:col-span-2"><Textarea value={desc} onChange={(e) => setDesc(e.target.value)} /></Field>
+          <Field label="Nota (solo para ti, el cliente no la ve)" className="sm:col-span-2"><Textarea value={desc} onChange={(e) => setDesc(e.target.value)} /></Field>
+          {caseId && <label className="flex items-start gap-2 text-sm sm:col-span-2"><input type="checkbox" checked={visible} onChange={(e) => setVisible(e.target.checked)} className="mt-0.5 h-4 w-4" /><span><b>Visible para el cliente</b> en su portal.</span></label>}
         </div>
         <div className="mt-4 flex flex-wrap justify-between gap-2">
           <ConfirmDelete label="Eliminar archivo" onConfirm={onDelete} />

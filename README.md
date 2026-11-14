@@ -23,6 +23,9 @@ Crea tu cuenta en la pantalla de inicio y luego tu despacho.
 2. En Settings > Environment Variables agrega `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`.
 3. En Supabase > Authentication > URL Configuration, pon la URL de Vercel como Site URL.
 
+## Portal del cliente
+Ejecuta también `supabase/migrations/0003_client_portal.sql`. En **Clientes → Editar → Invitar al portal** generas un código de un solo uso (vence en 14 días) y lo mandas por WhatsApp. El cliente entra con “Soy cliente: tengo un código de acceso”. Ve las etapas del juicio, el siguiente paso, los avances y solo los escritos marcados como “Visible para el cliente”. Lo gestionas en **Expedientes → Seguimiento**. Los clientes nunca leen tus tablas internas: solo funciones que devuelven columnas seguras.
+
 ## Pendiente para venderlo
 - Invitar compañeros al despacho (hoy cada cuenta crea su propio despacho).
 - Planes de suscripción y cobro (Stripe), rol de solo lectura, auditoría de cambios.

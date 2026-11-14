@@ -6,6 +6,7 @@ import type { CaseRow, Client } from '../lib/types'
 import { waLink } from '../lib/format'
 import { Button, Empty, ErrorNote, Field, Input, Modal, PageHeader, Spinner, Textarea } from '../components/ui'
 import { ConfirmDelete } from './Leads'
+import { InviteClient } from '../components/InviteClient'
 
 type Draft = { full_name: string; phone: string; email: string; address: string; notes: string }
 const blank: Draft = { full_name: '', phone: '', email: '', address: '', notes: '' }
@@ -79,6 +80,7 @@ export default function Clients() {
               {editing !== 'new' ? <ConfirmDelete onConfirm={() => void remove()} /> : <span />}
               <div className="flex gap-2"><Button variant="ghost" onClick={() => setEditing(null)}>Cancelar</Button><Button type="submit">Guardar</Button></div>
             </div>
+            {editing !== 'new' && <div className="mt-4"><InviteClient clientId={editing.id} name={editing.full_name} phone={editing.phone} /></div>}
             {editing !== 'new' && <p className="mt-3 text-xs text-silver-500">Al eliminar un cliente también se eliminan sus expedientes, pagos y términos.</p>}
           </form>
         </Modal>

@@ -14,6 +14,7 @@ export interface CaseRow {
   id: string; firm_id: string; client_id: string; title: string; case_type: string | null
   court: string | null; file_number: string | null; counterpart: string | null
   status: CaseStatus; opened_on: string | null; fees: number; notes: string | null
+  client_next_step: string | null; client_next_step_date: string | null; client_summary: string | null
   clients?: { full_name: string } | null
 }
 export type DeadlineKind = 'termino' | 'audiencia' | 'cita' | 'pago' | 'otro'
@@ -38,7 +39,7 @@ export type DocCategory = 'machote' | 'demanda' | 'contestacion' | 'escrito' | '
 export interface DocRow {
   id: string; firm_id: string; case_id: string | null; title: string; category: DocCategory
   description: string | null; storage_path: string; file_name: string; mime_type: string | null
-  size_bytes: number | null; created_at: string
+  size_bytes: number | null; created_at: string; visible_to_client: boolean
   cases?: { title: string } | null
 }
 
@@ -70,3 +71,24 @@ export const ACTIVITY_KINDS: { id: ActivityKind; label: string; icon: string }[]
   { id: 'llamada', label: 'Llamada', icon: '📞' }, { id: 'whatsapp', label: 'WhatsApp', icon: '💬' },
   { id: 'reunion', label: 'Reunión', icon: '🤝' }, { id: 'nota', label: 'Nota', icon: '📝' }, { id: 'otro', label: 'Otro', icon: '•' },
 ]
+
+export type MilestoneStatus = 'pendiente' | 'en_curso' | 'hecha'
+export interface Milestone {
+  id: string; firm_id: string; case_id: string; position: number; title: string
+  description: string | null; status: MilestoneStatus; completed_on: string | null
+}
+export interface CaseUpdate { id: string; firm_id: string; case_id: string; title: string; body: string | null; created_at: string }
+export const MILESTONE_STATUS: { id: MilestoneStatus; label: string }[] = [
+  { id: 'pendiente', label: 'Pendiente' }, { id: 'en_curso', label: 'En curso' }, { id: 'hecha', label: 'Hecha' },
+]
+/** Etapas sugeridas por tipo de caso. El abogado las puede editar, quitar o ampliar. */
+export const MILESTONE_TEMPLATES: Record<string, string[]> = {
+  'Divorcio de mutuo acuerdo': ['Documentos y convenio listos', 'Solicitud presentada', 'Junta con ambos cónyuges', 'Sentencia de divorcio', 'Inscripción en el Registro Civil'],
+  'Divorcio contencioso': ['Documentos reunidos', 'Demanda presentada', 'Admisión y emplazamiento', 'Contestación de la contraparte', 'Pruebas y audiencia', 'Sentencia', 'Ejecución y cierre'],
+  'Pensión alimenticia': ['Documentos reunidos', 'Demanda presentada', 'Pensión provisional', 'Contestación de la contraparte', 'Audiencia', 'Sentencia', 'Ejecución y cobro'],
+  'Despido injustificado': ['Reunión y documentos', 'Solicitud ante el Centro de Conciliación', 'Audiencia de conciliación', 'Demanda ante el Tribunal Laboral', 'Audiencia preliminar', 'Audiencia de juicio', 'Sentencia', 'Ejecución y cobro'],
+  'Desalojo': ['Documentos reunidos', 'Demanda presentada', 'Emplazamiento al inquilino', 'Audiencia', 'Sentencia', 'Lanzamiento y entrega'],
+  'Cobro de pagaré': ['Documentos reunidos', 'Demanda presentada', 'Requerimiento y embargo', 'Contestación', 'Sentencia', 'Remate o cobro'],
+  'Otro': ['Reunión y documentos', 'Trámite inicial', 'Seguimiento', 'Resolución', 'Cierre'],
+}
+export const DOC_VISIBLE_LABEL = 'Visible para el cliente'

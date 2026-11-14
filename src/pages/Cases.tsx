@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useFirmId } from '../auth/AuthProvider'
 import { useQuery } from '../lib/useQuery'
@@ -72,7 +73,7 @@ export default function Cases() {
                     <div className="mt-1 h-1.5 overflow-hidden rounded bg-silver-200" aria-hidden="true"><div className="h-full bg-gold-400" style={{ width: `${pct}%` }} /></div>
                   </div>
                 )}
-                <div className="mt-auto pt-1"><button type="button" onClick={() => open(c)} className="rounded-md border border-silver-200 px-2 py-1 text-xs font-semibold">Editar</button></div>
+                <div className="mt-auto flex gap-2 pt-1 text-xs"><Link to={`/expedientes/${c.id}`} className="rounded-md bg-navy-800 px-3 py-1 font-semibold text-white">Seguimiento</Link><button type="button" onClick={() => open(c)} className="rounded-md border border-silver-200 px-2 py-1 font-semibold">Editar</button></div>
               </article>
             )
           })}

@@ -14,6 +14,8 @@ import Cases from './pages/Cases'
 import Agenda from './pages/Agenda'
 import Billing from './pages/Billing'
 import Documents from './pages/Documents'
+import CaseDetail from './pages/CaseDetail'
+import Portal from './pages/Portal'
 
 function Setup() {
   return (
@@ -25,10 +27,11 @@ function Setup() {
 }
 
 export default function App() {
-  const { session, firm, loading } = useAuth()
+  const { session, firm, portal, loading } = useAuth()
   if (!configured) return <Setup />
   if (loading) return <Spinner />
   if (!session) return <Login />
+  if (!firm && portal) return <Portal />
   if (!firm) return <Onboarding />
   return (
     <Routes>
@@ -39,6 +42,7 @@ export default function App() {
         <Route path="seguimiento" element={<Followups />} />
         <Route path="clientes" element={<Clients />} />
         <Route path="expedientes" element={<Cases />} />
+        <Route path="expedientes/:id" element={<CaseDetail />} />
         <Route path="agenda" element={<Agenda />} />
         <Route path="cobranza" element={<Billing />} />
         <Route path="documentos" element={<Documents />} />

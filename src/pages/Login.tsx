@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { supabase } from '../lib/supabase'
 import { AuthShell } from '../components/AuthShell'
 import { Button, ErrorNote, Field, Input } from '../components/ui'
+import { setPortalIntent } from './Onboarding'
 
 function friendly(msg: string): string {
   if (/invalid login/i.test(msg)) return 'Correo o contraseña incorrectos.'
@@ -52,11 +53,14 @@ export default function Login() {
           <Button type="submit" variant="gold" disabled={busy} className="!py-3 text-base">{busy ? 'Un momento…' : mode === 'in' ? 'Entrar' : 'Crear cuenta'}</Button>
         </div>
         <div className="mt-5 flex items-center justify-between text-sm">
-          <button type="button" className="font-semibold text-navy-700 hover:underline" onClick={() => { setMode(mode === 'in' ? 'up' : 'in'); setError(null); setInfo(null) }}>
+          <button type="button" className="font-semibold text-navy-700 hover:underline" onClick={() => { setPortalIntent(false); setMode(mode === 'in' ? 'up' : 'in'); setError(null); setInfo(null) }}>
             {mode === 'in' ? 'Crear una cuenta' : 'Ya tengo cuenta'}
           </button>
           {mode === 'in' && <button type="button" className="text-silver-500 hover:underline" onClick={() => void reset()}>Olvidé mi contraseña</button>}
         </div>
+        <button type="button" className="mt-5 w-full rounded-lg border border-silver-200 px-3 py-2.5 text-sm font-semibold text-navy-800 hover:bg-silver-100" onClick={() => { setPortalIntent(true); setMode('up'); setError(null); setInfo('Crea tu contraseña con tu correo. En el siguiente paso te pediremos el código que te dio tu abogado.') }}>
+          Soy cliente: tengo un código de acceso
+        </button>
       </form>
     </AuthShell>
   )
