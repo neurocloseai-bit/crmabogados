@@ -95,7 +95,7 @@ export default function Cases() {
               <Field label="Contraparte"><Input value={draft.counterpart} onChange={(e) => setDraft({ ...draft, counterpart: e.target.value })} /></Field>
               <Field label="Estado"><Select value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value as CaseStatus })}>{CASE_STATUS.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}</Select></Field>
               <Field label="Fecha de apertura"><Input type="date" value={draft.opened_on} onChange={(e) => setDraft({ ...draft, opened_on: e.target.value })} /></Field>
-              <Field label="Honorarios pactados (MXN)"><Input type="number" min={0} step={100} inputMode="numeric" value={draft.fees} onChange={(e) => setDraft({ ...draft, fees: e.target.value })} /></Field>
+              <Field label="Honorarios pactados (MXN)"><Input type="number" min={0} step="any" inputMode="decimal" value={draft.fees} onChange={(e) => setDraft({ ...draft, fees: e.target.value })} /></Field>
               <Field label="Notas" className="sm:col-span-2"><Textarea value={draft.notes} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} /></Field>
             </div>
             <div className="mt-4 flex flex-wrap justify-between gap-2">

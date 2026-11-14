@@ -117,7 +117,7 @@ export default function Leads() {
               <Field label="Origen"><Select value={draft.source} onChange={(e) => setDraft({ ...draft, source: e.target.value })}>{SOURCES.map((s) => <option key={s}>{s}</option>)}</Select></Field>
               <Field label="Tipo de caso"><Select value={draft.case_type} onChange={(e) => setDraft({ ...draft, case_type: e.target.value })}>{CASE_TYPES.map((s) => <option key={s}>{s}</option>)}</Select></Field>
               <Field label="Etapa"><Select value={draft.stage} onChange={(e) => setDraft({ ...draft, stage: e.target.value as Stage })}>{STAGES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}</Select></Field>
-              <Field label="Honorarios cotizados (MXN)"><Input type="number" min={0} step={100} inputMode="numeric" value={draft.quoted} onChange={(e) => setDraft({ ...draft, quoted: e.target.value })} /></Field>
+              <Field label="Honorarios cotizados (MXN)"><Input type="number" min={0} step="any" inputMode="decimal" value={draft.quoted} onChange={(e) => setDraft({ ...draft, quoted: e.target.value })} /></Field>
               <Field label="Próximo seguimiento"><Input type="date" value={draft.follow_up_date} onChange={(e) => setDraft({ ...draft, follow_up_date: e.target.value })} /></Field>
               <Field label="Notas" className="sm:col-span-2"><Textarea value={draft.notes} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} /></Field>
             </div>

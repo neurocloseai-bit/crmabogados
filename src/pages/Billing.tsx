@@ -179,8 +179,8 @@ function PlanModal({ firmId, clients, cases, onClose, onDone }: { firmId: string
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Cliente"><Select value={clientId} onChange={(e) => pickClient(e.target.value)}>{clients.map((c) => <option key={c.id} value={c.id}>{c.full_name}</option>)}</Select></Field>
             <Field label="Expediente (opcional)"><Select value={caseId} onChange={(e) => pickCase(e.target.value)}><option value="">Aún sin expediente</option>{mine.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}</Select></Field>
-            <Field label="Total a cobrar (MXN)"><Input required type="number" min={1} step={100} inputMode="numeric" value={total} onChange={(e) => setTotal(e.target.value)} /></Field>
-            <Field label="Anticipo hoy (MXN)"><Input type="number" min={0} step={100} inputMode="numeric" value={down} onChange={(e) => setDown(e.target.value)} /></Field>
+            <Field label="Total a cobrar (MXN)"><Input required type="number" min={0.01} step="any" inputMode="decimal" value={total} onChange={(e) => setTotal(e.target.value)} /></Field>
+            <Field label="Anticipo hoy (MXN)"><Input type="number" min={0} step="any" inputMode="decimal" value={down} onChange={(e) => setDown(e.target.value)} /></Field>
             <Field label="Número de pagos"><Input type="number" min={1} max={120} inputMode="numeric" value={n} onChange={(e) => setN(e.target.value)} /></Field>
             <Field label="Frecuencia"><Select value={freq} onChange={(e) => { const f = e.target.value as Freq; setFreq(f); setFirst(step(today(), f, 1)) }}><option value="semanal">Semanal</option><option value="quincenal">Quincenal</option><option value="mensual">Mensual</option></Select></Field>
             <Field label="Fecha del primer pago"><Input required type="date" value={first} onChange={(e) => setFirst(e.target.value)} /></Field>
@@ -219,7 +219,7 @@ function LooseModal({ firmId, clients, cases, onClose, onDone }: { firmId: strin
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Cliente"><Select value={clientId} onChange={(e) => { setClientId(e.target.value); const own = cases.filter((c) => c.client_id === e.target.value); setCaseId(own.length === 1 ? own[0].id : '') }}>{clients.map((c) => <option key={c.id} value={c.id}>{c.full_name}</option>)}</Select></Field>
           <Field label="Expediente (opcional)"><Select value={caseId} onChange={(e) => setCaseId(e.target.value)}><option value="">Aún sin expediente</option>{cases.filter((c) => c.client_id === clientId).map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}</Select></Field>
-          <Field label="Monto (MXN)"><Input required type="number" min={1} step={50} inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value)} /></Field>
+          <Field label="Monto (MXN)"><Input required type="number" min={0.01} step="any" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} /></Field>
           <Field label="Fecha de pago"><Input required type="date" value={paidOn} onChange={(e) => setPaidOn(e.target.value)} /></Field>
           <Field label="Forma de pago" className="sm:col-span-2"><Select value={method} onChange={(e) => setMethod(e.target.value)}>{METHODS.map((m) => <option key={m}>{m}</option>)}</Select></Field>
         </div>
