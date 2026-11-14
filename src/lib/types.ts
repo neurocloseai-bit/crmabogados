@@ -26,14 +26,15 @@ export interface Deadline {
 }
 export interface Holiday { id: string; firm_id: string; day: string; label: string | null }
 export interface PaymentPlan {
-  id: string; firm_id: string; case_id: string; total: number; down_payment: number
+  id: string; firm_id: string; client_id: string; case_id: string | null; total: number; down_payment: number
   installments: number; frequency: 'semanal' | 'quincenal' | 'mensual'; first_due: string | null
 }
 export interface Payment {
-  id: string; firm_id: string; case_id: string; plan_id: string | null
+  id: string; firm_id: string; client_id: string; case_id: string | null; plan_id: string | null
   kind: 'anticipo' | 'mensualidad' | 'pago'; amount: number; due_date: string | null
   paid_on: string | null; method: string | null; note: string | null
-  cases?: { title: string; clients?: { full_name: string } | null } | null
+  clients?: { full_name: string } | null
+  cases?: { title: string } | null
 }
 export type DocCategory = 'machote' | 'demanda' | 'contestacion' | 'escrito' | 'contrato' | 'poder' | 'otro'
 export interface DocRow {

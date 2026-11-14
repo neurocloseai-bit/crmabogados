@@ -15,14 +15,16 @@ export default function Cases() {
   const firmId = useFirmId()
   const cases = useQuery<CaseRow[]>(() => supabase.from('cases').select('*, clients(full_name)').order('created_at', { ascending: false }), [])
   const clients = useQuery<Pick<Client, 'id' | 'full_name'>[]>(() => supabase.from('clients').select('id, full_name').order('full_name'), [])
-  const pays = useQuery<Pick<Payment, 'case_id' | 'amount' | 'paid_on'>[]>(() => supabase.from('payments').select('case_id, amount, paid_on'), [])
+  const pays = useQuery<Pick<Payment, 'case_id' | 'client_id' | 'amount' | 'paid_on'>[]>(() => supabase.from('payments').select('case_id, client_id, amount, paid_on'), [])
   const [editing, setEditing] = useState<CaseRow | 'new' | null>(null)
   const [draft, setDraft] = useState<Draft>(blank)
   const [msg, setMsg] = useState<string | null>(null)
   const [filter, setFilter] = useState<CaseStatus | 'todos'>('activo')
   const [q, setQ] = useState('')
 
-  const paidFor = (id: string) => (pays.data ?? []).filter((p) => p.case_id === id && p.paid_on).reduce((s, p) => s + p.amount, 0)
+  // Los pagos sin expediente (p. ej. el anticipo al contratar) cuentan para el caso si el cliente solo tiene uno.
+  const casesOf = (clientId: string) => (cases.data ?? []).filter((c) => c.client_id === clientId).length
+  const paidFor = (c: CaseRow) => (pays.data ?? []).filter((p) => p.paid_on && (p.case_id === c.id || (!p.case_id && p.client_id === c.client_id && casesOf(c.client_id) === 1))).reduce((s, p) => s + p.amount, 0)
   const list = (cases.data ?? []).filter((c) => (filter === 'todos' || c.status === filter) &&
     (!q.trim() || [c.title, c.file_number, c.court, c.clients?.full_name, c.counterpart].join(' ').toLowerCase().includes(q.trim().toLowerCase())))
 
@@ -59,7 +61,7 @@ export default function Cases() {
       {!cases.data?.length ? <Empty title="Aún no hay expedientes">{clients.data?.length ? 'Crea el primero con “Nuevo expediente”.' : 'Primero agrega un cliente y luego crea su expediente.'}</Empty> : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((c) => {
-            const paid = paidFor(c.id); const saldo = Math.max(0, c.fees - paid); const pct = c.fees > 0 ? Math.min(100, Math.round((paid / c.fees) * 100)) : 0
+            const paid = paidFor(c); const saldo = Math.max(0, c.fees - paid); const pct = c.fees > 0 ? Math.min(100, Math.round((paid / c.fees) * 100)) : 0
             return (
               <article key={c.id} className="flex min-w-0 flex-col gap-2 rounded-2xl border border-silver-200 bg-white shadow-card p-4">
                 <div className="flex items-start justify-between gap-2">

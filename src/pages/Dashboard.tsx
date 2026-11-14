@@ -11,7 +11,7 @@ export default function Dashboard() {
   const { firm } = useAuth()
   const leads = useQuery<Pick<Lead, 'id' | 'name' | 'stage' | 'follow_up_date'>[]>(() => supabase.from('leads').select('id, name, stage, follow_up_date'), [])
   const dls = useQuery<Deadline[]>(() => supabase.from('deadlines').select('*, cases(title, clients(full_name))').eq('done', false).order('due_date').limit(60), [])
-  const pays = useQuery<Payment[]>(() => supabase.from('payments').select('*, cases(title, clients(full_name))'), [])
+  const pays = useQuery<Payment[]>(() => supabase.from('payments').select('*, clients(full_name), cases(title)'), [])
   const cases = useQuery<{ id: string }[]>(() => supabase.from('cases').select('id').eq('status', 'activo'), [])
   if (leads.loading || dls.loading || pays.loading || cases.loading) return <Spinner />
 
@@ -69,7 +69,7 @@ export default function Dashboard() {
             <ul className="divide-y divide-silver-200 overflow-hidden rounded-2xl border border-silver-200 bg-white shadow-card">
               {pend.sort((a, b) => (a.due_date ?? '9999').localeCompare(b.due_date ?? '9999')).slice(0, 8).map((p) => (
                 <li key={p.id} className="flex items-center justify-between gap-2 p-3 text-sm">
-                  <span className="min-w-0"><b className="break-words">{p.cases?.clients?.full_name ?? p.cases?.title}</b><span className="block text-xs text-silver-500">{p.due_date ? fdate(p.due_date) : 'Sin fecha'} · <span className="capitalize">{p.kind}</span></span></span>
+                  <span className="min-w-0"><b className="break-words">{p.clients?.full_name ?? p.cases?.title}</b><span className="block text-xs text-silver-500">{p.due_date ? fdate(p.due_date) : 'Sin fecha'} · <span className="capitalize">{p.kind}</span></span></span>
                   <span className="flex items-center gap-2"><b className="tabular-nums">{mxn(p.amount)}</b>{p.due_date && p.due_date < t && <Badge tone="red">Vencido</Badge>}</span>
                 </li>
               ))}

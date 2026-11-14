@@ -2,12 +2,13 @@ import { useState, type FormEvent } from 'react'
 import { supabase } from '../lib/supabase'
 import { useFirmId } from '../auth/AuthProvider'
 import { useQuery } from '../lib/useQuery'
-import type { CaseRow, Payment } from '../lib/types'
+import type { CaseRow, Client, Payment } from '../lib/types'
 import { addDays, addMonths, daysBetween, fdate, mxn, today } from '../lib/format'
 import { Badge, Button, Empty, ErrorNote, Field, Input, Modal, PageHeader, Select, Spinner, Stat } from '../components/ui'
 import { ConfirmDelete } from './Leads'
 
 type Freq = 'semanal' | 'quincenal' | 'mensual'
+type CaseOpt = Pick<CaseRow, 'id' | 'title' | 'fees' | 'client_id'>
 const METHODS = ['Efectivo', 'Transferencia', 'Depósito', 'Tarjeta', 'Otro']
 
 function step(date: string, freq: Freq, i: number): string {
@@ -27,8 +28,9 @@ function buildSchedule(total: number, down: number, n: number, freq: Freq, first
 
 export default function Billing() {
   const firmId = useFirmId()
-  const pays = useQuery<Payment[]>(() => supabase.from('payments').select('*, cases(title, clients(full_name))').order('due_date', { nullsFirst: false }), [])
-  const cases = useQuery<Pick<CaseRow, 'id' | 'title' | 'fees' | 'status' | 'clients'>[]>(() => supabase.from('cases').select('id, title, fees, status, clients(full_name)').in('status', ['activo', 'suspendido']).order('title'), [])
+  const pays = useQuery<Payment[]>(() => supabase.from('payments').select('*, clients(full_name), cases(title)').order('due_date', { nullsFirst: false }), [])
+  const cases = useQuery<CaseOpt[]>(() => supabase.from('cases').select('id, title, fees, client_id').in('status', ['activo', 'suspendido']).order('title'), [])
+  const clients = useQuery<Pick<Client, 'id' | 'full_name'>[]>(() => supabase.from('clients').select('id, full_name').order('full_name'), [])
   const [msg, setMsg] = useState<string | null>(null)
   const [paying, setPaying] = useState<Payment | null>(null)
   const [payDraft, setPayDraft] = useState({ paid_on: today(), method: METHODS[1], note: '' })
@@ -61,7 +63,7 @@ export default function Billing() {
     setPaying(null); void pays.reload()
   }
 
-  if (pays.loading || cases.loading) return <Spinner />
+  if (pays.loading || cases.loading || clients.loading) return <Spinner />
   return (
     <>
       <PageHeader title="Cobranza" subtitle="Planes de pago, saldos y pagos recibidos." action={<div className="flex gap-2"><Button variant="ghost" onClick={() => setLoose(true)}>Registrar pago</Button><Button variant="gold" onClick={() => setPlan(true)}>+ Plan de pagos</Button></div>} />
@@ -74,17 +76,17 @@ export default function Billing() {
       </div>
 
       <h2 className="mb-2 text-xs font-bold uppercase tracking-widest text-silver-500">Pendientes</h2>
-      {!pending.length ? <Empty title="No hay pagos pendientes">Crea un plan de pagos para un expediente y aquí verás cada pago con su fecha.</Empty> : (
+      {!pending.length ? <Empty title="No hay pagos pendientes">Crea un plan de pagos para un cliente y aquí verás cada pago con su fecha.</Empty> : (
         <div className="overflow-x-auto rounded-2xl border border-silver-200 bg-white shadow-card">
           <table className="w-full min-w-[640px] text-left text-sm">
-            <thead className="bg-silver-100 text-[11px] uppercase tracking-wider text-silver-500"><tr><th className="px-3 py-2">Fecha</th><th className="px-3 py-2">Caso</th><th className="px-3 py-2">Concepto</th><th className="px-3 py-2 text-right">Monto</th><th className="px-3 py-2" /></tr></thead>
+            <thead className="bg-silver-100 text-[11px] uppercase tracking-wider text-silver-500"><tr><th className="px-3 py-2">Fecha</th><th className="px-3 py-2">Cliente</th><th className="px-3 py-2">Concepto</th><th className="px-3 py-2 text-right">Monto</th><th className="px-3 py-2" /></tr></thead>
             <tbody className="divide-y divide-silver-200">
               {pending.map((p) => {
                 const late = p.due_date && p.due_date < t
                 return (
                   <tr key={p.id}>
                     <td className="px-3 py-2 whitespace-nowrap">{p.due_date ? fdate(p.due_date) : 'Sin fecha'} {late ? <Badge tone="red">{Math.abs(daysBetween(t, p.due_date!))} d</Badge> : p.due_date === t ? <Badge tone="amber">Hoy</Badge> : null}</td>
-                    <td className="px-3 py-2"><div className="font-semibold">{p.cases?.title}</div><div className="text-xs text-silver-500">{p.cases?.clients?.full_name}</div></td>
+                    <td className="px-3 py-2"><div className="font-semibold">{p.clients?.full_name}</div><div className="text-xs text-silver-500">{p.cases?.title ?? 'Sin expediente aún'}</div></td>
                     <td className="px-3 py-2 capitalize">{p.kind}</td>
                     <td className="px-3 py-2 text-right font-bold tabular-nums">{mxn(p.amount)}</td>
                     <td className="px-3 py-2 text-right"><Button variant="ghost" onClick={() => { setMsg(null); setPayDraft({ paid_on: today(), method: METHODS[1], note: '' }); setPaying(p) }}>Registrar pago</Button></td>
@@ -101,7 +103,7 @@ export default function Billing() {
         <ul className="divide-y divide-silver-200 rounded-2xl border border-silver-200 bg-white shadow-card">
           {paidList.map((p) => (
             <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
-              <span><b>{p.cases?.title}</b> · {p.cases?.clients?.full_name}<span className="block text-xs text-silver-500">{fdate(p.paid_on, true)} · {p.method ?? '—'} · <span className="capitalize">{p.kind}</span></span></span>
+              <span><b>{p.clients?.full_name}</b> · {p.cases?.title ?? 'sin expediente aún'}<span className="block text-xs text-silver-500">{fdate(p.paid_on, true)} · {p.method ?? '—'} · <span className="capitalize">{p.kind}</span></span></span>
               <span className="flex items-center gap-3"><b className="tabular-nums">{mxn(p.amount)}</b><button type="button" onClick={() => void undo(p)} className="text-xs font-semibold text-silver-500 underline">Deshacer</button></span>
             </li>
           ))}
@@ -111,7 +113,7 @@ export default function Billing() {
       {paying && (
         <Modal title="Registrar pago" onClose={() => setPaying(null)}>
           <form onSubmit={confirmPay}>
-            <p className="mb-3 text-sm"><b>{paying.cases?.title}</b> · {mxn(paying.amount)} <span className="capitalize">({paying.kind})</span></p>
+            <p className="mb-3 text-sm"><b>{paying.clients?.full_name}</b> · {mxn(paying.amount)} <span className="capitalize">({paying.kind})</span></p>
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="Fecha de pago"><Input required type="date" value={payDraft.paid_on} onChange={(e) => setPayDraft({ ...payDraft, paid_on: e.target.value })} /></Field>
               <Field label="Forma de pago"><Select value={payDraft.method} onChange={(e) => setPayDraft({ ...payDraft, method: e.target.value })}>{METHODS.map((m) => <option key={m}>{m}</option>)}</Select></Field>
@@ -124,17 +126,19 @@ export default function Billing() {
           </form>
         </Modal>
       )}
-      {plan && <PlanModal firmId={firmId} cases={cases.data ?? []} onClose={() => setPlan(false)} onDone={() => { setPlan(false); void pays.reload() }} />}
-      {loose && <LooseModal firmId={firmId} cases={cases.data ?? []} onClose={() => setLoose(false)} onDone={() => { setLoose(false); void pays.reload() }} />}
+      {plan && <PlanModal firmId={firmId} clients={clients.data ?? []} cases={cases.data ?? []} onClose={() => setPlan(false)} onDone={() => { setPlan(false); void pays.reload() }} />}
+      {loose && <LooseModal firmId={firmId} clients={clients.data ?? []} cases={cases.data ?? []} onClose={() => setLoose(false)} onDone={() => { setLoose(false); void pays.reload() }} />}
     </>
   )
 }
 
-type CaseOpt = Pick<CaseRow, 'id' | 'title' | 'fees' | 'clients'>
 
-function PlanModal({ firmId, cases, onClose, onDone }: { firmId: string; cases: CaseOpt[]; onClose: () => void; onDone: () => void }) {
-  const [caseId, setCaseId] = useState(cases[0]?.id ?? '')
-  const [total, setTotal] = useState(cases[0]?.fees ? String(cases[0].fees) : '')
+type ClientOpt = Pick<Client, 'id' | 'full_name'>
+
+function PlanModal({ firmId, clients, cases, onClose, onDone }: { firmId: string; clients: ClientOpt[]; cases: CaseOpt[]; onClose: () => void; onDone: () => void }) {
+  const [clientId, setClientId] = useState(clients[0]?.id ?? '')
+  const [caseId, setCaseId] = useState('')
+  const [total, setTotal] = useState('')
   const [down, setDown] = useState('')
   const [n, setN] = useState('6')
   const [freq, setFreq] = useState<Freq>('mensual')
@@ -146,18 +150,24 @@ function PlanModal({ firmId, cases, onClose, onDone }: { firmId: string; cases: 
   const valid = T > 0 && D >= 0 && D < T && !!first
   const rows = valid ? buildSchedule(T, D, N, freq, first, today()) : []
 
+  const mine = cases.filter((c) => c.client_id === clientId)
+  function pickClient(id: string) {
+    setClientId(id); setCaseId('')
+    const own = cases.filter((c) => c.client_id === id)
+    if (own.length === 1) { setCaseId(own[0].id); if (own[0].fees) setTotal(String(own[0].fees)) }
+  }
   function pickCase(id: string) {
     setCaseId(id); const c = cases.find((x) => x.id === id)
     if (c?.fees) setTotal(String(c.fees))
   }
   async function save(e: FormEvent) {
     e.preventDefault()
-    if (!caseId) { setErr('Elige un expediente. Si no existe, créalo en Expedientes.'); return }
+    if (!clientId) { setErr('Elige un cliente. Si no existe, créalo en Clientes.'); return }
     if (!valid) { setErr('Revisa los montos: el anticipo debe ser menor al total.'); return }
     setBusy(true); setErr(null)
-    const { data: plan, error } = await supabase.from('payment_plans').insert({ firm_id: firmId, case_id: caseId, total: T, down_payment: D, installments: N, frequency: freq, first_due: first }).select('id').single()
+    const { data: plan, error } = await supabase.from('payment_plans').insert({ firm_id: firmId, client_id: clientId, case_id: caseId || null, total: T, down_payment: D, installments: N, frequency: freq, first_due: first }).select('id').single()
     if (error || !plan) { setErr(error?.message ?? 'No se pudo crear el plan.'); setBusy(false); return }
-    const { error: e2 } = await supabase.from('payments').insert(rows.map((r) => ({ ...r, firm_id: firmId, case_id: caseId, plan_id: plan.id })))
+    const { error: e2 } = await supabase.from('payments').insert(rows.map((r) => ({ ...r, firm_id: firmId, client_id: clientId, case_id: caseId || null, plan_id: plan.id })))
     if (e2) { await supabase.from('payment_plans').delete().eq('id', plan.id); setErr(e2.message); setBusy(false); return }
     onDone()
   }
@@ -165,9 +175,10 @@ function PlanModal({ firmId, cases, onClose, onDone }: { firmId: string; cases: 
     <Modal wide title="Nuevo plan de pagos" onClose={onClose}>
       <form onSubmit={save}>
         <ErrorNote message={err} />
-        {!cases.length ? <p className="text-sm text-silver-500">Primero crea un expediente activo en Expedientes.</p> : (
+        {!clients.length ? <p className="text-sm text-silver-500">Primero agrega un cliente en Clientes.</p> : (
           <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Expediente" className="sm:col-span-2"><Select value={caseId} onChange={(e) => pickCase(e.target.value)}>{cases.map((c) => <option key={c.id} value={c.id}>{c.title} · {c.clients?.full_name}</option>)}</Select></Field>
+            <Field label="Cliente"><Select value={clientId} onChange={(e) => pickClient(e.target.value)}>{clients.map((c) => <option key={c.id} value={c.id}>{c.full_name}</option>)}</Select></Field>
+            <Field label="Expediente (opcional)"><Select value={caseId} onChange={(e) => pickCase(e.target.value)}><option value="">Aún sin expediente</option>{mine.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}</Select></Field>
             <Field label="Total a cobrar (MXN)"><Input required type="number" min={1} step={100} inputMode="numeric" value={total} onChange={(e) => setTotal(e.target.value)} /></Field>
             <Field label="Anticipo hoy (MXN)"><Input type="number" min={0} step={100} inputMode="numeric" value={down} onChange={(e) => setDown(e.target.value)} /></Field>
             <Field label="Número de pagos"><Input type="number" min={1} max={120} inputMode="numeric" value={n} onChange={(e) => setN(e.target.value)} /></Field>
@@ -181,22 +192,23 @@ function PlanModal({ firmId, cases, onClose, onDone }: { firmId: string; cases: 
             <ul className="max-h-40 overflow-y-auto text-xs tabular-nums">{rows.map((r, i) => <li key={i} className="flex justify-between py-0.5"><span className="capitalize">{r.kind} · {fdate(r.due_date, true)}</span><b>{mxn(r.amount)}</b></li>)}</ul>
           </div>
         )}
-        <div className="mt-4 flex justify-end gap-2"><Button variant="ghost" onClick={onClose}>Cancelar</Button><Button type="submit" disabled={busy || !cases.length}>{busy ? 'Creando…' : 'Crear plan'}</Button></div>
+        <div className="mt-4 flex justify-end gap-2"><Button variant="ghost" onClick={onClose}>Cancelar</Button><Button type="submit" disabled={busy || !clients.length}>{busy ? 'Creando…' : 'Crear plan'}</Button></div>
       </form>
     </Modal>
   )
 }
 
-function LooseModal({ firmId, cases, onClose, onDone }: { firmId: string; cases: CaseOpt[]; onClose: () => void; onDone: () => void }) {
-  const [caseId, setCaseId] = useState(cases[0]?.id ?? '')
+function LooseModal({ firmId, clients, cases, onClose, onDone }: { firmId: string; clients: ClientOpt[]; cases: CaseOpt[]; onClose: () => void; onDone: () => void }) {
+  const [clientId, setClientId] = useState(clients[0]?.id ?? '')
+  const [caseId, setCaseId] = useState('')
   const [amount, setAmount] = useState('')
   const [paidOn, setPaidOn] = useState(today())
   const [method, setMethod] = useState(METHODS[1])
   const [err, setErr] = useState<string | null>(null)
   async function save(e: FormEvent) {
     e.preventDefault()
-    if (!caseId) { setErr('Elige un expediente.'); return }
-    const { error } = await supabase.from('payments').insert({ firm_id: firmId, case_id: caseId, kind: 'pago', amount: Number(amount), due_date: paidOn, paid_on: paidOn, method })
+    if (!clientId) { setErr('Elige un cliente.'); return }
+    const { error } = await supabase.from('payments').insert({ firm_id: firmId, client_id: clientId, case_id: caseId || null, kind: 'pago', amount: Number(amount), due_date: paidOn, paid_on: paidOn, method })
     if (error) { setErr(error.message); return }
     onDone()
   }
@@ -205,12 +217,13 @@ function LooseModal({ firmId, cases, onClose, onDone }: { firmId: string; cases:
       <form onSubmit={save}>
         <ErrorNote message={err} />
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Expediente" className="sm:col-span-2"><Select value={caseId} onChange={(e) => setCaseId(e.target.value)}>{cases.map((c) => <option key={c.id} value={c.id}>{c.title} · {c.clients?.full_name}</option>)}</Select></Field>
+          <Field label="Cliente"><Select value={clientId} onChange={(e) => { setClientId(e.target.value); const own = cases.filter((c) => c.client_id === e.target.value); setCaseId(own.length === 1 ? own[0].id : '') }}>{clients.map((c) => <option key={c.id} value={c.id}>{c.full_name}</option>)}</Select></Field>
+          <Field label="Expediente (opcional)"><Select value={caseId} onChange={(e) => setCaseId(e.target.value)}><option value="">Aún sin expediente</option>{cases.filter((c) => c.client_id === clientId).map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}</Select></Field>
           <Field label="Monto (MXN)"><Input required type="number" min={1} step={50} inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value)} /></Field>
           <Field label="Fecha de pago"><Input required type="date" value={paidOn} onChange={(e) => setPaidOn(e.target.value)} /></Field>
           <Field label="Forma de pago" className="sm:col-span-2"><Select value={method} onChange={(e) => setMethod(e.target.value)}>{METHODS.map((m) => <option key={m}>{m}</option>)}</Select></Field>
         </div>
-        <div className="mt-4 flex justify-end gap-2"><Button variant="ghost" onClick={onClose}>Cancelar</Button><Button type="submit" disabled={!cases.length}>Guardar</Button></div>
+        <div className="mt-4 flex justify-end gap-2"><Button variant="ghost" onClick={onClose}>Cancelar</Button><Button type="submit" disabled={!clients.length}>Guardar</Button></div>
       </form>
     </Modal>
   )
